@@ -7,6 +7,7 @@ name = "pypi"
 django = ">=2.1.2,<3.0"
 "psycopg2-binary" = "*"
 gunicorn = "*"
+djangorestframework = "*"
 
 [requires]
 python_version = "3.5"
