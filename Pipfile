@@ -9,6 +9,8 @@ django = ">=2.1.2,<3.0"
 gunicorn = "*"
 djangorestframework = "*"
 xmltodict = "*"
+pillow = "*"
+django-stdimage = "*"
 
 [requires]
 python_version = "3.5"

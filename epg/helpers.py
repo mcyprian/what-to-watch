@@ -1,5 +1,8 @@
 import logging
 from datetime import datetime
+from urllib.request import urlretrieve
+
+from django.core.files import File
 
 from .models import (Channel,
                      EPGEntity,
@@ -7,7 +10,8 @@ from .models import (Channel,
                      Genre,
                      Person,
                      Actor,
-                     ParticipatesIn)
+                     ParticipatesIn,
+                     Image)
 
 from .serializers import ChannelSerializer, EPGEntitySerializer
 
@@ -47,6 +51,7 @@ def add_epg(channel, data, date):
             starts_at=starts_at.time(),
         )
         broadcast.save()
+    add_images(data, epg)
     return epg
 
 
@@ -103,3 +108,17 @@ def add_actors(actor_list, epg):
             )
             new_person.save()
         add_participation(new_person, epg, role="actor")
+
+
+def add_images(data, epg):
+    for attr in ["cover", "landscape"]:
+        url = data.get(attr)
+        if url:
+            if not Image.objects.filter(url=url).exists():
+                image = Image(url=url, epg=epg)
+                content = urlretrieve(url)
+                image.photo.save(
+                    "{0}-{1}".format(data["@id"], attr),
+                    File(open(content[0], 'rb')),
+                    save=True
+                )
