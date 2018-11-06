@@ -11,6 +11,7 @@ djangorestframework = "*"
 xmltodict = "*"
 pillow = "*"
 django-stdimage = "*"
+coreapi = "*"
 
 [requires]
 python_version = "3.5"

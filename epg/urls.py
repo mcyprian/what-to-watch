@@ -1,6 +1,7 @@
 from django.urls import path
 from django.conf.urls import url
 from django.views.generic.base import RedirectView
+from rest_framework.documentation import include_docs_urls
 
 from . import views
 
@@ -15,4 +16,5 @@ urlpatterns = [
     url(r'^api/genres/(?P<pk>[0-9]+)$', views.GenreDetail.as_view(), name='genre-detail'),
     url(r'^api/persones/$', views.PersonList.as_view(), name='person-list'),
     url(r'^api/persones/(?P<pk>[0-9]+)$', views.PersonDetail.as_view(), name='person-detail'),
+    url(r'^docs/', include_docs_urls(title='What To Watch REST API'))
 ]
