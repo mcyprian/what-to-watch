@@ -30,6 +30,7 @@ class EPGEntity(models.Model):
     original_title = models.CharField(max_length=128, null=True)
     year = models.PositiveIntegerField(null=True)
     state = models.CharField(max_length=128, null=True)
+    rating = models.CharField(max_length=128, null=True)
     genres = models.ManyToManyField(Genre)
     persones = models.ManyToManyField("Person", through="ParticipatesIn")
     channels = models.ManyToManyField(Channel, through="Broadcasting")

@@ -11,7 +11,7 @@ from .serializers import (ChannelSerializer,
                           EPGEntitySerializer,
                           GenreSerializer,
                           PersonSerializer)
-from .utils import unpack_archive
+from .utils import IMDBFetcher, unpack_archive
 from .helpers import add_channel, add_epg, add_genres, add_persons, add_actors
 
 logger = logging.getLogger(__name__)
@@ -35,20 +35,27 @@ def update_data(request):
             channel = add_channel(program)
             show_data = program.get("porad")
             if show_data:
-                for show in show_data.get("porad", []):
-                    epg = add_epg(channel, show, show_data.get("@datum"))
+                with IMDBFetcher() as imdb:
+                    for show in show_data.get("porad", []):
+                        try:
+                            show["rating"] = imdb.get_rating(
+                                show["nazev-originalni"][0]
+                            )
+                        except (KeyError, TypeError):
+                            show["rating"] = None
+                        epg = add_epg(channel, show, show_data.get("@datum"))
 
-                    actors = show.get("hraji", {}).get("osoba", [])
-                    add_actors(actors, epg)
+                        actors = show.get("hraji", {}).get("osoba", [])
+                        add_actors(actors, epg)
 
-                    directors = show.get("rezie", {}).get("osoba", [])
-                    add_persons(directors, epg, role="director")
+                        directors = show.get("rezie", {}).get("osoba", [])
+                        add_persons(directors, epg, role="director")
 
-                    producers = show.get("produkce", {}).get("osoba", [])
-                    add_persons(producers, epg, role="producer")
+                        producers = show.get("produkce", {}).get("osoba", [])
+                        add_persons(producers, epg, role="producer")
 
-                    genres = show.get("genres", {}).get("genre", [])
-                    add_genres(epg, genres)
+                        genres = show.get("genres", {}).get("genre", [])
+                        add_genres(epg, genres)
     logger.info("Data updated successfuly from url {0}".format(url))
     return HttpResponse("Data updated!")
 

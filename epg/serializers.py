@@ -91,18 +91,23 @@ class EPGEntitySerializer(serializers.HyperlinkedModelSerializer):
             'description', instance.description)
         instance.year = validated_data.get('year', instance.year)
         instance.state = validated_data.get('state', instance.state)
+        instance.rating = validated_data.get('rating', instance.rating)
 
     @staticmethod
     def create_from_xml_dict(data):
+        original_title = data.get("nazev-originalni")
+        if original_title and isinstance(original_title, list):
+            original_title = original_title[0]
         epg = EPGEntity.objects.create(
             uid=data["@id"],
             title=data["nazev"],
-            original_title=data.get("nazev-originalni"),
+            original_title=original_title,
             length=data.get("delka"),
             summary=data.get("kratkypopis"),
             description=data.get("dlouhypopis"),
             year=data.get("rok-vyroby"),
             state=data.get("zeme", {}).get("@code"),
+            rating=data.get("rating"),
         )
         epg.save()
         return epg
@@ -122,5 +127,6 @@ class EPGEntitySerializer(serializers.HyperlinkedModelSerializer):
             'description',
             'year',
             'state',
+            'rating',
             'genres',
             'actors')

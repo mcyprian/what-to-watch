@@ -1,8 +1,12 @@
+import csv
+import gzip
 import os
+import shutil
 import logging
 import tempfile
 import zipfile
 from urllib.request import urlretrieve
+from urllib.parse import urljoin
 from xml.parsers.expat import ExpatError
 
 import xmltodict
@@ -41,3 +45,45 @@ def unpack_archive(archive_url):
             logger.warning("Failed to open zip file from location {0}".format(
                 archive_url))
             return {}
+
+
+class IMDBFetcher(object):
+
+    def __init__(self):
+        self.base_url = "https://datasets.imdbws.com/"
+        self.tempdir = tempfile.mkdtemp()
+        self.titles = {}
+        self.ratings = {}
+        self.titles_tar = self.get_archive("title.akas.tsv.gz")
+        self.ratings_tar = self.get_archive("title.ratings.tsv.gz")
+
+    def __enter__(self):
+        self.fetch_data()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        shutil.rmtree(self.tempdir)
+
+    def get_archive(self, tsv_name):
+        file_path = os.path.join(self.tempdir, tsv_name)
+        urlretrieve(urljoin(self.base_url, tsv_name), file_path)
+        return file_path
+
+    def fetch_data(self):
+        with gzip.open(self.titles_tar, 'rt') as csvfile:
+            spamreader = csv.reader(
+                csvfile, delimiter='\t', quotechar='|')
+            for row in spamreader:
+                self.titles[row[2]] = row[0]
+
+        with gzip.open(self.ratings_tar, 'rt') as csvfile:
+            spamreader = csv.reader(
+                csvfile, delimiter='\t', quotechar='|')
+            for row in spamreader:
+                self.ratings[row[0]] = row[1]
+
+    def get_rating(self, original_name):
+        try:
+            return self.ratings[self.titles[original_name]]
+        except KeyError:
+            return None
